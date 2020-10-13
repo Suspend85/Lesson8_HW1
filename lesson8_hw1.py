@@ -1,32 +1,46 @@
 # Написать программу, которая будет выводить топ 10 самых часто встречающихся в новостях слов длиннее 6 символов.
-# Задача №1.
-# Написать программу для файла в формате json.
-
+# Задача №1. Написать программу для файла в формате json.
 
 import json
-import re
+from pprint import pprint
 from collections import Counter
 
 
-def get_text_from_json():
-    with open("newsafr.json", encoding="utf-8") as read_file:
+def getting_text_from_json(filename):
+    """ Opening file anf reading data to news_text"""
+    with open(filename, encoding="utf-8") as read_file:
         json_data = json.load(read_file)
-    titles = json_data["rss"]["channel"]["items"]
-    descriptions_text = ''
-    for title in titles:
-        descriptions_text += title["description"]
-    return descriptions_text
+    items = json_data["rss"]["channel"]["items"]
+    news_text = ''
+    for item in items:
+        news_text += item["description"]
+    return news_text
 
 
-def text_filtering(descriptions_text, word_count):
-    text_string = descriptions_text.lower()
-    match_pattern = re.findall(r'\b[а-я,a-z]{6,100}\b', text_string)
-    return Counter(match_pattern).most_common(word_count)
+def counting_news_text(news_text, char_count):
+    """ Creating list of words and their rating """
+    words = news_text.split()
+    filter_list = []
+    res = []
+    for word in words:
+        if len(word) >= int(char_count):
+            filter_list.append(word)
+    word_counts = Counter([word.lower() for word in filter_list])
+    for key, value in word_counts.items():
+        res.append([key, value])
+    return res
+
+
+def rating_news(res, word_count):
+    """ Creating top list """
+    res = sorted(res, key=lambda x: x[1], reverse=True)
+    top_words = res[: int(word_count)]
+    return top_words
 
 
 def main():
-    get_text_from_json()
-    print(text_filtering(get_text_from_json(), int(input('кол-во слов: ')))  )
+    pprint(rating_news(counting_news_text(getting_text_from_json(
+        "newsafr.json"), input("Кол-во символов: ")), input("кол-во слов: ")))
 
 
 main()
